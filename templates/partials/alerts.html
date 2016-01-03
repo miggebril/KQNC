@@ -1,0 +1,13 @@
+{{define "alerts"}}
+<div class="alerts">
+{{ range ("success" | .ctx.Session.Flashes) }}
+  <div class="alert alert-success">{{ . }}</div>
+{{ end }}
+{{ range ("danger" | .ctx.Session.Flashes) }}
+  <div class="alert alert-danger">{{ . }}</div>
+{{ end }}
+{{ range ("info" | .ctx.Session.Flashes) }}
+  <div class="alert alert-info">{{ . }}</div>
+{{ end }}
+</div>
+{{end}}
