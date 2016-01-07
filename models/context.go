@@ -5,6 +5,7 @@ import (
 	"code.google.com/p/gorilla/sessions"
 	"labix.org/v2/mgo"
 	"labix.org/v2/mgo/bson"
+  "log"
 )
 
 type Context struct {
@@ -38,4 +39,16 @@ func NewContext(req *http.Request, store sessions.Store, session *mgo.Session, d
   }
 
   return ctx, err
+}
+
+func (c *Context) GetDocuments() []Document {
+  coll := c.C("documents")
+  query := coll.Find(bson.M{}).Sort("-timestamp")
+
+  var documents []Document
+  if err := query.All(&documents); err != nil {
+    log.Println(err)
+    //return nil
+  }
+  return documents
 }

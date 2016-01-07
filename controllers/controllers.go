@@ -143,6 +143,7 @@ func Index(w http.ResponseWriter, r *http.Request, ctx *models.Context) (err err
 	}
 
 	return T("index.html", true).Execute(w, map[string]interface{}{
+		"documents": ctx.GetDocuments(),
 		"ctx":     ctx,
 	})
 }

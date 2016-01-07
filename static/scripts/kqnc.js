@@ -103,7 +103,9 @@ var App = function () {
         });
 
         // Initialize metsiMenu plugin to sidebar menu
-        $('#side-menu').metisMenu();
+        $('#left-menu').metisMenu();
+
+        $('#right-menu').metisMenu({ toggle: true });
 
 
         // Open close right sidebar
@@ -225,15 +227,18 @@ var App = function () {
             $("#PreviewModal").modal("show");
         });
     }
-    var handleCampaign = function() {
-        $("button#ListingsLoad").click(function() {
-            $.getJSON( $(this).attr("href")+"?keywords="+$("input#ListingsKeywords").val(), function( data ) {
-                for(var i = 0; i < data.length; i++) {
-                    $("#ListingsGallery").append('<a data-title="'+data[i].Title+'" href="'+data[i].URL+'"><img src="'+data[i].Thumbnail+'"></a>');
-                }
-                handleListingModals();
+    var handleDocumentView = function() {
+        var textarea = document.getElementById("code1");
+
+        // Wait until animation finished render container
+        setTimeout(function(){
+
+            CodeMirror.fromTextArea(textarea, {
+                lineNumbers: true,
+                matchBrackets: true,
+                styleActiveLine: true
             });
-        });
+        }, 500);
     }
 
     return {
@@ -256,8 +261,8 @@ var App = function () {
             if (App.isPage("dashboard")) {
                 handleDashboard();
             }
-            if (App.isPage("campaign")) {
-                handleCampaign();
+            if (App.isPage("document")) {
+                handleDocumentView();
                 handleListingModals();
             }
         },

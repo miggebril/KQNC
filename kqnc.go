@@ -75,6 +75,11 @@ func main() {
 	router.Add("GET", "/register", handler(controllers.RegisterForm)).Name("register")
 	router.Add("POST", "/register", handler(controllers.Register))
 
+	router.Add("GET", "/documents/new", handler(controllers.NewDocumentForm))
+	router.Add("POST", "/documents/new", handler(controllers.NewDocument))
+	router.Add("GET", "/documents/{id}", handler(controllers.DocumentForm))
+	router.Add("GET", "/documents", handler(controllers.DocumentIndexForm))
+
 	router.PathPrefix("/static/").Handler(http.StripPrefix("/static/", http.FileServer(http.Dir("./static/"))))
 	router.Add("GET", "/", handler(controllers.Index)).Name("index")
 
