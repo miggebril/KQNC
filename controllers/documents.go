@@ -57,7 +57,7 @@ func DocumentForm(w http.ResponseWriter, r *http.Request, ctx *models.Context) (
 
 	return T("documents/view.html", true).Execute(w, map[string]interface{}{
 		"ctx":     ctx,
-		"documents": document,
+		"document": document,
 	})
 }
 

@@ -9,7 +9,7 @@ type Document struct {
 	ID bson.ObjectId `bson:"_id,omitempty" col:"campaigns"`
 	Name string
 	User bson.ObjectId
-	KeyWords string
+	Content string
 }
 
 func (d Document) GetIDEncoded() string {

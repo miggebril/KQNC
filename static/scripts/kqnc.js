@@ -228,17 +228,14 @@ var App = function () {
         });
     }
     var handleDocumentView = function() {
-        var textarea = document.getElementById("code1");
-
-        // Wait until animation finished render container
-        setTimeout(function(){
-
-            CodeMirror.fromTextArea(textarea, {
-                lineNumbers: true,
-                matchBrackets: true,
-                styleActiveLine: true
-            });
-        }, 500);
+        $('.summernote').summernote({
+            toolbar: [
+                ['headline', ['style']],
+                ['style', ['bold', 'italic', 'underline', 'superscript', 'subscript', 'strikethrough', 'clear']],
+                ['textsize', ['fontsize']],
+                ['alignment', ['ul', 'ol', 'paragraph', 'lineheight']],
+            ]
+        });
     }
 
     return {
