@@ -1,10 +1,21 @@
 {{define "title"}}Campaign View{{end}}
 {{define "scripts"}}
-<script src="/static/vendor/summernote/dist/summernote.min.js"></script>
+<script src="/static/vendor/summernote/dist/summernote.js"></script>
+<script src="/static/vendor/leaps/leapclient.js"></script>
+<script src="/static/vendor/leaps/leap-bind-summernote.js"></script>
 <script>
 $(function () {
     App.setPage("document");
     App.init();
+
+    var client = new leap_client();
+    client.bind_summernote($(".summernote"));
+
+    client.on("connect", function() {
+        client.join_document("{{.ctx.User.GetIDEncoded}}", "auth_token", "{{.document.GetIDEncoded}}");
+    });
+
+    client.connect("ws://" + window.location.hostname + ":8001/socket");
 });
 </script>
 {{end}}
@@ -37,9 +48,7 @@ $(function () {
                     </div>
                 </div>
                 <div class="panel-body no-padding">
-                    <div class="summernote">
-                        {{.document.Content}}
-                    </div>
+                    <div class="summernote">{{.document.Content}}</div>
                 </div>
             </div>
         </div>

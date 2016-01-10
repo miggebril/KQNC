@@ -1,171 +1,254 @@
 define([
-  'summernote/core/agent', 'summernote/core/dom',
-  'summernote/core/range',
-  'summernote/settings',
-  'summernote/EventHandler', 'summernote/Renderer'
-], function (agent, dom, range, settings, EventHandler, Renderer) {
-  // jQuery namespace for summernote
-  $.summernote = $.summernote || {};
-
-  // extends default `settings`
-  $.extend($.summernote, settings);
-
-  var renderer = new Renderer();
-  var eventHandler = new EventHandler();
-
-  $.extend($.summernote, {
-    renderer: renderer,
-    eventHandler: eventHandler,
-    core: {
-      agent: agent,
-      dom: dom,
-      range: range
-    },
-    pluginEvents: {}
-  });
+  'jquery',
+  'summernote/base/core/func',
+  'summernote/base/core/list',
+  'summernote/base/core/dom'
+], function ($, func, list, dom) {
 
   /**
-   * addPlugin
-   *
-   * @param {Object} plugin
+   * @param {jQuery} $note
+   * @param {Object} options
+   * @return {Context}
    */
-  $.summernote.addPlugin = function (plugin) {
-    if (plugin.buttons) {
-      $.each(plugin.buttons, function (name, button) {
-        renderer.addButtonInfo(name, button);
-      });
-    }
+  var Context = function ($note, options) {
+    var self = this;
 
-    if (plugin.dialogs) {
-      $.each(plugin.dialogs, function (name, dialog) {
-        renderer.addDialogInfo(name, dialog);
-      });
-    }
+    var ui = $.summernote.ui;
+    this.memos = {};
+    this.modules = {};
+    this.layoutInfo = {};
+    this.options = options;
 
-    if (plugin.events) {
-      $.each(plugin.events, function (name, event) {
-        $.summernote.pluginEvents[name] = event;
-      });
-    }
+    /**
+     * create layout and initialize modules and other resources
+     */
+    this.initialize = function () {
+      this.layoutInfo = ui.createLayout($note, options);
+      this._initialize();
+      $note.hide();
+      return this;
+    };
 
-    if (plugin.langs) {
-      $.each(plugin.langs, function (locale, lang) {
-        if ($.summernote.lang[locale]) {
-          $.extend($.summernote.lang[locale], lang);
+    /**
+     * destroy modules and other resources and remove layout
+     */
+    this.destroy = function () {
+      this._destroy();
+      $note.removeData('summernote');
+      ui.removeLayout($note, this.layoutInfo);
+    };
+
+    /**
+     * destory modules and other resources and initialize it again
+     */
+    this.reset = function () {
+      this.code(dom.emptyPara);
+      this._destroy();
+      this._initialize();
+    };
+
+    this._initialize = function () {
+      // add optional buttons
+      var buttons = $.extend({}, this.options.buttons);
+      Object.keys(buttons).forEach(function (key) {
+        self.memo('button.' + key, buttons[key]);
+      });
+
+      var modules = $.extend({}, this.options.modules, $.summernote.plugins || {});
+
+      // add and initialize modules
+      Object.keys(modules).forEach(function (key) {
+        self.module(key, modules[key], true);
+      });
+
+      Object.keys(this.modules).forEach(function (key) {
+        self.initializeModule(key);
+      });
+    };
+
+    this._destroy = function () {
+      // destroy modules with reversed order
+      Object.keys(this.modules).reverse().forEach(function (key) {
+        self.removeModule(key);
+      });
+
+      Object.keys(this.memos).forEach(function (key) {
+        self.removeMemo(key);
+      });
+    };
+
+    this.code = function (html) {
+      var isActivated = this.invoke('codeview.isActivated');
+
+      if (html === undefined) {
+        this.invoke('codeview.sync');
+        return isActivated ? this.layoutInfo.codable.val() : this.layoutInfo.editable.html();
+      } else {
+        if (isActivated) {
+          this.layoutInfo.codable.val(html);
+        } else {
+          this.layoutInfo.editable.html(html);
         }
-      });
-    }
+        $note.val(html);
+        this.triggerEvent('change', html);
+      }
+    };
 
-    if (plugin.options) {
-      $.extend($.summernote.options, plugin.options);
-    }
+    this.isDisabled = function () {
+      return this.layoutInfo.editable.attr('contenteditable') === 'false';
+    };
+
+    this.enable = function () {
+      this.layoutInfo.editable.attr('contenteditable', true);
+      this.invoke('toolbar.activate', true);
+    };
+
+    this.disable = function () {
+      // close codeview if codeview is opend
+      if (this.invoke('codeview.isActivated')) {
+        this.invoke('codeview.deactivate');
+      }
+      this.layoutInfo.editable.attr('contenteditable', false);
+      this.invoke('toolbar.deactivate', true);
+    };
+
+    this.triggerEvent = function () {
+      var namespace = list.head(arguments);
+      var args = list.tail(list.from(arguments));
+
+      var callback = this.options.callbacks[func.namespaceToCamel(namespace, 'on')];
+      if (callback) {
+        callback.apply($note[0], args);
+      }
+      $note.trigger('summernote.' + namespace, args);
+    };
+
+    this.initializeModule = function (key) {
+      var module = this.modules[key];
+      module.shouldInitialize = module.shouldInitialize || func.ok;
+      if (!module.shouldInitialize()) {
+        return;
+      }
+
+      // initialize module
+      if (module.initialize) {
+        module.initialize();
+      }
+
+      // attach events
+      if (module.events) {
+        dom.attachEvents($note, module.events);
+      }
+    };
+
+    this.module = function (key, ModuleClass, withoutIntialize) {
+      if (arguments.length === 1) {
+        return this.modules[key];
+      }
+
+      this.modules[key] = new ModuleClass(this);
+
+      if (!withoutIntialize) {
+        this.initializeModule(key);
+      }
+    };
+
+    this.removeModule = function (key) {
+      var module = this.modules[key];
+      if (module.shouldInitialize()) {
+        if (module.events) {
+          dom.detachEvents($note, module.events);
+        }
+
+        if (module.destroy) {
+          module.destroy();
+        }
+      }
+
+      delete this.modules[key];
+    };
+
+    this.memo = function (key, obj) {
+      if (arguments.length === 1) {
+        return this.memos[key];
+      }
+      this.memos[key] = obj;
+    };
+
+    this.removeMemo = function (key) {
+      if (this.memos[key] && this.memos[key].destroy) {
+        this.memos[key].destroy();
+      }
+
+      delete this.memos[key];
+    };
+
+    this.createInvokeHandler = function (namespace, value) {
+      return function (event) {
+        event.preventDefault();
+        self.invoke(namespace, value || $(event.target).data('value') || $(event.currentTarget).data('value'));
+      };
+    };
+
+    this.invoke = function () {
+      var namespace = list.head(arguments);
+      var args = list.tail(list.from(arguments));
+
+      var splits = namespace.split('.');
+      var hasSeparator = splits.length > 1;
+      var moduleName = hasSeparator && list.head(splits);
+      var methodName = hasSeparator ? list.last(splits) : list.head(splits);
+
+      var module = this.modules[moduleName || 'editor'];
+      if (!moduleName && this[methodName]) {
+        return this[methodName].apply(this, args);
+      } else if (module && module[methodName] && module.shouldInitialize()) {
+        return module[methodName].apply(module, args);
+      }
+    };
+
+    return this.initialize();
   };
 
-  /**
-   * extend jquery fn
-   */
+  $.summernote = $.summernote || {
+    lang: {}
+  };
+
   $.fn.extend({
     /**
-     * initialize summernote
-     *  - create editor layout and attach Mouse and keyboard events.
+     * Summernote API
      *
-     * @param {Object} options
-     * @returns {this}
+     * @param {Object|String}
+     * @return {this}
      */
-    summernote: function (options) {
-      // extend default options
-      options = $.extend({}, $.summernote.options, options);
+    summernote: function () {
+      var type = $.type(list.head(arguments));
+      var isExternalAPICalled = type === 'string';
+      var hasInitOptions = type === 'object';
 
-      // Include langInfo in options for later use, e.g. for image drag-n-drop
-      // Setup language info with en-US as default
+      var options = hasInitOptions ? list.head(arguments) : {};
+
+      options = $.extend({}, $.summernote.options, options);
       options.langInfo = $.extend(true, {}, $.summernote.lang['en-US'], $.summernote.lang[options.lang]);
 
-      this.each(function (idx, holder) {
-        var $holder = $(holder);
-
-        // createLayout with options
-        renderer.createLayout($holder, options);
-
-        var info = renderer.layoutInfoFromHolder($holder);
-        eventHandler.attach(info, options);
-
-        // Textarea: auto filling the code before form submit.
-        if (dom.isTextarea($holder[0])) {
-          $holder.closest('form').submit(function () {
-            var contents = $holder.code();
-            $holder.val(contents);
-
-            // callback on submit
-            if (options.onsubmit) {
-              options.onsubmit(contents);
-            }
-          });
+      this.each(function (idx, note) {
+        var $note = $(note);
+        if (!$note.data('summernote')) {
+          var context = new Context($note, options);
+          $note.data('summernote', context);
+          $note.data('summernote').triggerEvent('init', context.layoutInfo);
         }
       });
 
-      // focus on first editable element
-      if (this.first().length && options.focus) {
-        var info = renderer.layoutInfoFromHolder(this.first());
-        info.editable.focus();
-      }
-
-      // callback on init
-      if (this.length && options.oninit) {
-        options.oninit();
-      }
-
-      return this;
-    },
-    //
-
-    /**
-     * get the HTML contents of note or set the HTML contents of note.
-     *
-     * @param {String} [sHTML] - HTML contents(optional, set)
-     * @returns {this|String} - context(set) or HTML contents of note(get).
-     */
-    code: function (sHTML) {
-      // get the HTML contents of note
-      if (sHTML === undefined) {
-        var $holder = this.first();
-        if (!$holder.length) { return; }
-        var info = renderer.layoutInfoFromHolder($holder);
-        if (!!(info && info.editable)) {
-          var isCodeview = info.editor.hasClass('codeview');
-          if (isCodeview && agent.hasCodeMirror) {
-            info.codable.data('cmEditor').save();
-          }
-          return isCodeview ? info.codable.val() : info.editable.html();
+      var $note = this.first();
+      if ($note.length) {
+        var context = $note.data('summernote');
+        if (isExternalAPICalled) {
+          return context.invoke.apply(context, list.from(arguments));
+        } else if (options.focus) {
+          context.invoke('editor.focus');
         }
-        return dom.isTextarea($holder[0]) ? $holder.val() : $holder.html();
       }
-
-      // set the HTML contents of note
-      this.each(function (i, holder) {
-        var info = renderer.layoutInfoFromHolder($(holder));
-        if (info && info.editable) { info.editable.html(sHTML); }
-      });
-
-      return this;
-    },
-
-    /**
-     * destroy Editor Layout and detach Key and Mouse Event
-     *
-     * @returns {this}
-     */
-    destroy: function () {
-      this.each(function (idx, holder) {
-        var $holder = $(holder);
-
-        var info = renderer.layoutInfoFromHolder($holder);
-        if (!info || !info.editable) { return; }
-
-        var options = info.editor.data('options');
-
-        eventHandler.detach(info, options);
-        renderer.removeLayout($holder, info, options);
-      });
 
       return this;
     }

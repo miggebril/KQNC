@@ -1,6 +1,7 @@
 package models
 
 import (
+	"encoding/base64"
 	"labix.org/v2/mgo/bson"
 	"code.google.com/p/go.crypto/bcrypt"
 )
@@ -35,4 +36,8 @@ func Login(ctx *Context, email, password string) (u *User, err error) {
 		u = nil
 	}
 	return
+}
+
+func (u User) GetIDEncoded() string {
+	return base64.URLEncoding.EncodeToString([]byte(u.ID))
 }

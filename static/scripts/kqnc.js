@@ -229,17 +229,7 @@ var App = function () {
     }
     var handleDocumentView = function() {
         $('.summernote').summernote({
-            toolbar: [
-                ['headline', ['style']],
-                ['style', ['bold', 'italic', 'underline', 'superscript', 'subscript', 'strikethrough', 'clear']],
-                ['textsize', ['fontsize']],
-                ['alignment', ['ul', 'ol', 'paragraph', 'lineheight']],
-            ],
-            callbacks: {
-                onChange: function(contents, $editable) {
-                  console.log('onChange:', contents, $editable);
-                }
-            }
+            height: 300,    
         });
     }
 

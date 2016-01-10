@@ -7,6 +7,7 @@ import (
 	"github.com/gorilla/schema"
 	"labix.org/v2/mgo/bson"
 	"log"
+	"kqnc/lib/store"
 )
 
 func NewDocumentForm(w http.ResponseWriter, r *http.Request, ctx *models.Context) (err error) {
@@ -33,6 +34,14 @@ func NewDocument(w http.ResponseWriter, r *http.Request, ctx *models.Context) (e
 		helpers.CheckErr(err, "Failed to create new document.")
 		return NewDocumentForm(w, r, ctx)
 	}
+	//doc, _ := store.NewDocument("hello")
+	//log.Println("Creating doc with ID:", document.GetIDEncoded())
+	if _, err := ctx.Curator.CreateDocument(ctx.User.GetIDEncoded(), document.GetIDEncoded(), store.Document{document.GetIDEncoded(), "lol"}); err != nil {
+		ctx.Session.AddFlash("Problem creating new document.", "danger")
+		helpers.CheckErr(err, "Failed to create new document.")
+		return NewDocumentForm(w, r, ctx)
+	}
+
 	ctx.Session.AddFlash("Document created successfully.", "success")
 	http.Redirect(w, r, "/documents/"+document.GetIDEncoded(), http.StatusFound)
 	return nil

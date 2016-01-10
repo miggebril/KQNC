@@ -17,6 +17,53 @@ module.exports = function (grunt) {
     return data;
   };
 
+  var customLaunchers = {
+    /*
+    'SL_IE8': {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      version: '8.0',
+      platform: 'windows XP'
+    },
+    */
+    'SL_IE9': {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      version: '9.0',
+      platform: 'windows 7'
+    },
+    'SL_IE10': {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      version: '10.0',
+      platform: 'windows 8'
+    },
+    'SL_IE11': {
+      base: 'SauceLabs',
+      browserName: 'internet explorer',
+      version: '11.0',
+      platform: 'windows 8.1'
+    },
+    'SL_CHROME': {
+      base: 'SauceLabs',
+      browserName: 'chrome',
+      version: '43',
+      platform: 'windows 8'
+    },
+    'SL_FIREFOX': {
+      base: 'SauceLabs',
+      browserName: 'firefox',
+      version: '38',
+      platform: 'windows 8'
+    },
+    'SL_SAFARI': {
+      base: 'SauceLabs',
+      browserName: 'safari',
+      version: '8.0',
+      platform: 'OS X 10.10'
+    }
+  };
+
   grunt.initConfig({
     // package File
     pkg: grunt.file.readJSON('package.json'),
@@ -40,6 +87,7 @@ module.exports = function (grunt) {
           'lang/**/*.js',
           'Gruntfile.js',
           'test/**/*.js',
+          '!test/coverage/**/*.js',
           'build/*.js'
         ],
         options: {
@@ -52,15 +100,22 @@ module.exports = function (grunt) {
       }
     },
 
-    // qunit: javascript unit test.
-    qunit: {
-      all: [ 'test/*.html' ]
-    },
-
     // uglify: minify javascript
     uglify: {
+      options: {
+        banner: '/*! Summernote v<%=pkg.version%> | (c) 2013-2015 Alan Hong and other contributors | MIT license */\n'
+      },
       all: {
-        files: { 'dist/summernote.min.js': ['dist/summernote.js'] }
+        files: [
+          { 'dist/summernote.min.js': ['dist/summernote.js'] },
+          {
+            expand: true,
+            cwd: 'dist/lang',
+            src: '**/*.js',
+            dest: 'dist/lang',
+            ext: '.min.js'
+          }
+        ]
       }
     },
 
@@ -74,22 +129,35 @@ module.exports = function (grunt) {
       }
     },
 
+    // compress: summernote-{{version}}-dist.zip
+    compress: {
+      main: {
+        options: {
+          archive: function () {
+            return 'dist/summernote-{{version}}-dist.zip'.replace(
+              '{{version}}',
+              grunt.config('pkg.version')
+            );
+          }
+        },
+        files: [{
+          expand: true,
+          src: [
+            'dist/*.js',
+            'dist/*.css'
+          ]
+        }, {
+          src: ['plugin/**/*.js', 'lang/**/*.js'],
+          dest: 'dist/'
+        }]
+      }
+    },
+
     // connect configuration.
     connect: {
       all: {
         options: {
-          port: 3000,
-          livereload: true,
-          middleware: function (connect, options, middlewares) {
-            var base = options.base[0];
-            middlewares = middlewares || [];
-            return middlewares.concat([
-              require('connect-livereload')(), // livereload middleware
-              connect['static'](base),    // serve static files
-              connect.directory(base)  // make empty directories browsable
-            ]);
-          },
-          open: 'http://localhost:3000'
+          port: 3000
         }
       }
     },
@@ -98,7 +166,7 @@ module.exports = function (grunt) {
     watch: {
       all: {
         files: ['src/less/*.less', 'src/js/**/*.js'],
-        tasks: ['recess', 'jshint', 'qunit'],
+        tasks: ['recess', 'jshint'],
         options: {
           livereload: true
         }
@@ -106,46 +174,100 @@ module.exports = function (grunt) {
     },
 
     // Meteor commands to test and publish package
-    shell: {
+    exec: {
       'meteor-test': {
-        command: 'meteor/runtests.sh',
-        options: {
-          execOptions: {
-            killSignal: 'SIGKILL'
-          }
-        }
+        command: 'meteor/runtests.sh'
       },
       'meteor-publish': {
         command: 'meteor/publish.sh'
       }
-    }
+    },
 
+    karma: {
+      options: {
+        configFile: './test/karma.conf.js'
+      },
+      all: {
+        // Chrome, ChromeCanary, Firefox, Opera, Safari, PhantomJS, IE
+        browsers: ['PhantomJS'],
+        reporters: ['progress']
+      },
+      dist: {
+        singleRun: true,
+        browsers: ['PhantomJS']
+      },
+      travis: {
+        singleRun: true,
+        browsers: ['PhantomJS'],
+        reporters: ['progress', 'coverage']
+      },
+      saucelabs: {
+        reporters: ['saucelabs'],
+        sauceLabs: {
+          testName: '[Travis] unit tests for summernote',
+          startConnect: false,
+          tunnelIdentifier: process.env.TRAVIS_JOB_NUMBER,
+          build: process.env.TRAVIS_BUILD_NUMBER,
+          tags: [process.env.TRAVIS_BRANCH, process.env.TRAVIS_PULL_REQUEST]
+        },
+        captureTimeout: 120000,
+        customLaunchers: customLaunchers,
+        browsers: Object.keys(customLaunchers),
+        singleRun: true
+      }
+    },
+
+    coveralls: {
+      options: {
+        force: false
+      },
+      travis: {
+        src: 'test/coverage/**/lcov.info'
+      }
+    },
+    clean: {
+      dist: ['dist']
+    },
+    copy: {
+      dist: {
+        files: [
+          {src: 'lang/*', dest: 'dist/'}
+        ]
+      }
+    }
   });
 
   // load all tasks from the grunt plugins used in this file
   require('load-grunt-tasks')(grunt);
 
-  // server
+  // load all grunts/*.js
+  grunt.loadTasks('grunts');
+
+  // server: runt server for development
   grunt.registerTask('server', ['connect', 'watch']);
 
-  // build: build summernote.js
-  grunt.loadTasks('build');
-
   // test: unit test on test folder
-  grunt.registerTask('test', ['jshint', 'qunit']);
+  grunt.registerTask('test', ['jshint', 'karma:all']);
 
-  // dist
-  grunt.registerTask('dist', ['build', 'test', 'uglify', 'recess']);
+  // test: unit test on travis
+  grunt.registerTask('test-travis', ['jshint', 'karma:travis']);
 
-  // default: build, test, dist.
-  grunt.registerTask('default', ['dist']);
+  // test: saucelabs test
+  grunt.registerTask('saucelabs-test', ['karma:saucelabs']);
+
+  // dist: make dist files
+  grunt.registerTask('dist', [
+    'clean:dist',
+    'build', 'jshint', 'karma:dist',
+    'copy:dist', 'uglify', 'recess', 'compress'
+  ]);
+
+  // default: server
+  grunt.registerTask('default', ['server']);
 
   // Meteor tasks
-  grunt.registerTask('meteor-test', 'shell:meteor-test');
-  grunt.registerTask('meteor-publish', 'shell:meteor-publish');
-  // Ideally we'd run tests before publishing, but the chances of tests breaking (given that
-  // Meteor is orthogonal to the library) are so small that it's not worth the maintainer's time
-  // grunt.regsterTask('meteor', ['shell:meteor-test', 'shell:meteor-publish']);
-  grunt.registerTask('meteor', 'shell:meteor-publish');
+  grunt.registerTask('meteor-test', 'exec:meteor-test');
+  grunt.registerTask('meteor-publish', 'exec:meteor-publish');
+  grunt.registerTask('meteor', ['meteor-test', 'meteor-publish']);
 
 };
