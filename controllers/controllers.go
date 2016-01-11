@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"kqnc/models"
+	"kqnc/helpers"
   	"net/http"
   	"code.google.com/p/gorilla/pat"
   	"html/template"
@@ -36,6 +37,9 @@ func reverse(name string, things ...interface{}) string {
 
 var funcs = template.FuncMap{
 	"reverse": reverse,
+	"smallPercent": helpers.RandomSmallPercent,
+	"bigPercent": helpers.RandomBigPercent,
+	"randomScore": helpers.RandomScore,
 }
 
 func T(name string, useBase bool) *template.Template {

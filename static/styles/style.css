@@ -3505,7 +3505,8 @@ ul.h-list li:hover a {
   height: 55px;
 }
 .landing-page header {
-  background: url('../images/landing/header.jpg') 50% 0 no-repeat;
+  /*background: url('../images/landing/header.jpg') 50% 0 no-repeat;*/
+  background-color:#ccc;
   height: 480px;
   padding-top: 50px;
   margin-bottom: 30px;
@@ -3525,7 +3526,7 @@ ul.h-list li:hover a {
 }
 .landing-page .heading {
   margin-top: 60px;
-  color: #edf0f5;
+  /*color: #edf0f5;*/
 }
 .landing-page .heading h1 {
   font-weight: 600;

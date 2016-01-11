@@ -8,54 +8,56 @@ $(function () {
 </script>
 {{end}}
 {{define "content"}}
-<div class="content animate-panel">
+<div id="wrapper">
+    {{template "alerts" .}}
+    <div class="content animate-panel">
 
-<div class="row">
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-body">
-                <h3>Forms</h3>
-                <p>Individual form controls automatically receive some global styling. All textual <code>&lt;input&gt;</code>, <code>&lt;textarea&gt;</code>, and <code>&lt;select&gt;</code> elements with <code>.form-control</code> are set to <code>width: 100%;</code> by default. Wrap labels and controls in <code>.form-group</code> for optimum spacing.</p>
-            </div>
-        </div>
-    </div>
-</div>
     <div class="row">
         <div class="col-lg-12">
             <div class="hpanel">
-                <div class="panel-heading">
-                    <div class="panel-tools">
-                        <a class="showhide"><i class="fa fa-chevron-up"></i></a>
-                        <a class="closebox"><i class="fa fa-times"></i></a>
-                    </div>
-                    Product Details
-                </div>
                 <div class="panel-body">
-                <form class="form-horizontal" action="/documents/new" method="post">
-                <div class="form-group"><label class="col-sm-2 control-label">Name</label>
-
-                    <div class="col-sm-10"><input type="text" name="name" class="form-control"></div>
-                </div>
-                <div class="hr-line-dashed"></div>
-                <div class="form-group">
-                    <label class="col-sm-2 control-label">Content</label>
-                    <div class="col-sm-10">
-                        <input name="Content" type="text" class="form-control">
-                        <span class="help-block m-b-none">A comma-separated list of words that will be used to search for your product.</span>
-                    </div>
-                </div>
-                <div class="hr-line-dashed"></div>
-                <div class="form-group">
-                    <div class="col-sm-8 col-sm-offset-2">
-                        <button class="btn btn-default" type="submit">Cancel</button>
-                        <button class="btn btn-primary" type="submit">Create</button>
-                    </div>
-                </div>
-                </form>
+                    <h3>New Document</h3>
+                    <p>Use the following form to configure your new document.</p>
                 </div>
             </div>
         </div>
     </div>
+        <div class="row">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading">
+                        <div class="panel-tools">
+                            <a class="showhide"><i class="fa fa-chevron-up"></i></a>
+                            <a class="closebox"><i class="fa fa-times"></i></a>
+                        </div>
+                        Document Details
+                    </div>
+                    <div class="panel-body">
+                    <form class="form-horizontal" action="/documents/new" method="post">
+                    <div class="form-group"><label class="col-sm-2 control-label">Title</label>
 
+                        <div class="col-sm-10"><input type="text" name="name" class="form-control"></div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <label class="col-sm-2 control-label">Collaborators</label>
+                        <div class="col-sm-10">
+                            <input name="Content" type="text" class="form-control">
+                            <span class="help-block m-b-none">A list of users that will be authors on this project.  Not implimented yet.</span>
+                        </div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <div class="col-sm-8 col-sm-offset-2">
+                            <button class="btn btn-default" type="submit">Cancel</button>
+                            <button class="btn btn-primary" type="submit">Create</button>
+                        </div>
+                    </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 {{end}}

@@ -228,8 +228,9 @@ var App = function () {
         });
     }
     var handleDocumentView = function() {
+        var height = $("#wrapper").height();
         $('.summernote').summernote({
-            //height: ,    
+            height: height-400,
         });
     }
 

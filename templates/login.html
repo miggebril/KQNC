@@ -8,7 +8,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
 
     <!-- Page title -->
-    <title>HOMER | WebApp admin theme</title>
+    <title>KQNC | Loginhomer</title>
 
     <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
     <!--<link rel="shortcut icon" type="image/ico" href="favicon.ico" />-->
@@ -44,7 +44,7 @@
         <div class="col-md-12">
             <div class="text-center m-b-md">
                 <h3>PLEASE LOGIN TO APP</h3>
-                <small>This is the best app ever!</small>
+                <small>Sign in to the KQNC</small>
             </div>
             <div class="hpanel">
                 <div class="panel-body">
@@ -57,7 +57,7 @@
                             <div class="form-group">
                                 <label class="control-label" for="password">Password</label>
                                 <input type="password" title="Please enter your password" placeholder="******" required="" value="" name="password" id="password" class="form-control">
-                                <span class="help-block small">Yur strong password</span>
+                                <span class="help-block small">Your password</span>
                             </div>
                             <div class="checkbox">
                                 <input type="checkbox" class="i-checks" checked>
@@ -73,7 +73,7 @@
     </div>
     <div class="row">
         <div class="col-md-12 text-center">
-            <strong>HOMER</strong> - AngularJS Responsive WebApp <br/> 2015 Copyright Company Name
+            2015 Copyright Aplin Partners
         </div>
     </div>
 </div>
@@ -87,7 +87,14 @@
 <script src="static/vendor/metisMenu/dist/metisMenu.min.js"></script>
 <script src="static/vendor/iCheck/icheck.min.js"></script>
 <script src="static/vendor/sparkline/index.js"></script>
-
+<script>
+$(document).ready(function() {
+     $('.i-checks').iCheck({
+        checkboxClass: 'icheckbox_square-green',
+        radioClass: 'iradio_square-green'
+    });
+ });
+</script>
 <!-- App scripts -->
 <script src="static/scripts/kqnc.js"></script>
 
