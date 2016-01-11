@@ -5,8 +5,8 @@ logger:
 metrics:
   prefix: leaps
 storage:
-  type: mock
-  name: test_document
+  type: file
+  storage_directory: ~/go/src/kqnc/files
 authenticator:
   type: none
   allow_creation: true

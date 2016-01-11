@@ -48,7 +48,7 @@ func NewConfig() Config {
 	return Config{
 		Type:           "memory",
 		Name:           "",
-		StoreDirectory: "",
+		StoreDirectory: "./files",
 		SQLConfig:      NewSQLConfig(),
 	}
 }

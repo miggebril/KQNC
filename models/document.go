@@ -7,6 +7,7 @@ import (
 
 type Document struct {
 	ID bson.ObjectId `bson:"_id,omitempty" col:"campaigns"`
+	LeafID string
 	Name string
 	User bson.ObjectId
 	Content string

@@ -229,7 +229,7 @@ var App = function () {
     }
     var handleDocumentView = function() {
         $('.summernote').summernote({
-            height: 300,    
+            //height: ,    
         });
     }
 

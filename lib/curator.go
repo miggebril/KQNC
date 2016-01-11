@@ -30,7 +30,6 @@ import (
 
 	"kqnc/lib/auth"
 	"kqnc/lib/store"
-	"kqnc/lib/util"
 	"github.com/jeffail/util/log"
 	"github.com/jeffail/util/metrics"
 )
@@ -313,6 +312,7 @@ error if either the document ID is already currently in use, or if there is a pr
 new document. May require authentication, if so a userID is supplied.
 */
 func (c *Curator) CreateDocument(userID, token string, doc store.Document) (BinderPortal, error) {
+	fmt.Println("c create called")
 	c.log.Debugf("Creating new document with userID %v token %v\n", userID, token)
 
 	if c.authenticator.Authenticate(userID, token, "") < auth.CreateAccess {
@@ -322,7 +322,7 @@ func (c *Curator) CreateDocument(userID, token string, doc store.Document) (Bind
 	c.stats.Incr("curator.create.accepted_client", 1)
 
 	// Always generate a fresh ID
-	doc.ID = util.GenerateStampedUUID()
+	//doc.ID = util.GenerateStampedUUID()
 
 	if err := c.store.Create(doc); err != nil {
 		c.stats.Incr("curator.create_new.failed", 1)
