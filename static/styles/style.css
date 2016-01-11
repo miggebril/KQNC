@@ -3507,7 +3507,7 @@ ul.h-list li:hover a {
 .landing-page header {
   /*background: url('../images/landing/header.jpg') 50% 0 no-repeat;*/
   background-color:#ccc;
-  height: 480px;
+  height: 400px;
   padding-top: 50px;
   margin-bottom: 30px;
 }
